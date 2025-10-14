@@ -1,0 +1,37 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16
+    container_name: bouncing_balls-db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASS:-secret}
+      POSTGRES_DB: ${DB_NAME:-bouncing_balls}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    container_name: bouncing_balls-backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS:-secret}
+      DB_NAME: ${DB_NAME:-bouncing_balls}
+      JWT_SECRET: ${JWT_SECRET:-supersecret} # Добавьте в .env
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    volumes:
+      - .:/usr/src/app # Для hot reload
+      - /usr/src/app/node_modules # Исключить node_modules
+    command: npm run start:dev # Nodemon для reload
+
+volumes:
+  postgres_data:
