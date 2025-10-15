@@ -69,6 +69,7 @@
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
+    "testPathIgnorePatterns": ["/node_modules/", "/dist/", "/*.spec.ts"],
     "moduleFileExtensions": [
       "js",
       "json",
