@@ -21,6 +21,11 @@ export class AuthService {
     const existing = await this.userRepo.findOne({ where: { nickname } });
     if (existing) throw new UnauthorizedException('Nickname exists');
 
+    if (email) {
+      const existingEmail = await this.userRepo.findOne({ where: { email } });
+      if (existingEmail) throw new UnauthorizedException('Email already exists');
+    }
+
     const hashed = await bcrypt.hash(password, 12);
     const user = this.userRepo.create({ nickname, password: hashed, email });
     await this.userRepo.save(user);
