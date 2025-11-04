@@ -1,7 +1,7 @@
-import { Controller, Post, Body, UseGuards, Res } from '@nestjs/common';
-import type { Response } from 'express';
+import { Controller, Post, Body, UseGuards, Res, Get, Req } from '@nestjs/common';
+import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { RegisterDto, LoginDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, AuthStatusDto } from './dto/auth.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
@@ -29,9 +29,19 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 24 * 60 * 60 * 1000,  // 24 часа
+      maxAge: 24 * 60 * 60 * 1000 * 7,  // неделя
     });
 
     return { user: result.user };
+  }
+
+  @Get('check-status')
+  @ApiOperation({ summary: 'Check user authentication status' })
+  @ApiResponse({ status: 200, description: 'Returns user authentication status' })
+  async checkStatus(@Req() req: Request): Promise<AuthStatusDto> {
+    // Получаем токен из cookie
+    const token = req.cookies?.access_token;
+    
+    return this.authService.checkAuthStatus(token);
   }
 }

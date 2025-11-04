@@ -4,8 +4,9 @@ import { Repository } from 'typeorm';
 import { User } from '../users/user.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { RegisterDto, LoginDto } from './dto/auth.dto';
+import { RegisterDto, LoginDto, AuthStatusDto } from './dto/auth.dto';
 import { EmailService } from '../email/email.service'; // Placeholder
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -14,6 +15,7 @@ export class AuthService {
     private userRepo: Repository<User>,
     private jwtService: JwtService,
     private emailService: EmailService,
+    private configService: ConfigService,
   ) {}
 
   async register(dto: RegisterDto) {
@@ -35,7 +37,7 @@ export class AuthService {
       await this.emailService.sendWelcome(email, nickname, password); // Отправляем plain password? Нет, в реале — reset link!
     }
 
-    return { message: 'User created', userId: user.id };
+    return { message: 'User created', userId: user.id, nickName: user.nickname };
   }
 
   async login(dto: LoginDto) {
@@ -59,5 +61,51 @@ export class AuthService {
       return result;
     }
     return null;
+  }
+
+  async checkAuthStatus(token?: string): Promise<AuthStatusDto> {
+    // Если токена нет - пользователь не регистрировался
+    if (!token) {
+      return {
+        status: 'not_registered',
+        message: 'No token found',
+        user: undefined,
+      };
+    }
+
+    try {
+      // Проверяем валидность токена
+      const payload = this.jwtService.verify(token, {
+        secret: this.configService.get('JWT_SECRET'),
+      });
+
+      // Токен валидный - получаем данные пользователя
+      const user = await this.userRepo.findOne({
+        where: { id: payload.sub },
+        select: ['id', 'nickname', 'email'],
+      });
+
+      if (!user) {
+        // Пользователь не найден в БД
+        return {
+          status: 'not_registered',
+          message: 'User not found',
+          user: undefined,
+        };
+      }
+
+      return {
+        status: 'authenticated',
+        message: 'User authenticated',
+        user: user,
+      };
+    } catch (error) {
+      // Любая ошибка токена = нужно войти заново
+      return {
+        status: 'token_expired',
+        message: 'Token invalid or expired',
+        user: undefined,
+      };
+    }
   }
 }

@@ -32,3 +32,18 @@ export class LoginDto {
   @IsNotEmpty()
   password: string;
 }
+
+export class AuthStatusDto {
+  @ApiProperty()
+  status: 'authenticated' | 'token_expired' | 'not_registered';
+
+  @ApiProperty()
+  message: string;
+
+  @ApiProperty({ required: false })
+  user?: {
+    id: number;
+    nickname: string;
+    email?: string;
+  };
+}
