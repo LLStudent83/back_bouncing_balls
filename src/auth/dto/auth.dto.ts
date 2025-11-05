@@ -5,7 +5,7 @@ export class RegisterDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  nickname: string;
+  nickName: string;
 
   @ApiProperty()
   @IsString()
@@ -25,7 +25,7 @@ export class LoginDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  nickname: string;
+  nickName: string;
 
   @ApiProperty()
   @IsString()
@@ -43,7 +43,7 @@ export class AuthStatusDto {
   @ApiProperty({ required: false })
   user?: {
     id: number;
-    nickname: string;
+    nickName: string;
     email?: string;
   };
 }

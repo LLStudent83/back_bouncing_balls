@@ -3,9 +3,11 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { Request, Response } from 'express';
+import cookie = require('cookie');
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.setGlobalPrefix('api');
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
@@ -21,6 +23,15 @@ async function bootstrap() {
   app.use('/api-json', (req: Request, res: Response) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(document);
+  });
+
+  // Cookie parsing middleware
+  app.use((req: Request, res: Response, next) => {
+    if (req.headers.cookie) {
+      const cookies = cookie.parse(req.headers.cookie);
+      req.cookies = cookies;
+    }
+    next();
   });
 
   await app.listen(3000);

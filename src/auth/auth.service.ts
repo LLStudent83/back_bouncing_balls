@@ -19,8 +19,8 @@ export class AuthService {
   ) {}
 
   async register(dto: RegisterDto) {
-    const { nickname, password, email } = dto;
-    const existing = await this.userRepo.findOne({ where: { nickname } });
+    const { nickName, password, email } = dto;
+    const existing = await this.userRepo.findOne({ where: { nickName } });
     if (existing) throw new UnauthorizedException('Nickname exists');
 
     if (email) {
@@ -29,33 +29,33 @@ export class AuthService {
     }
 
     const hashed = await bcrypt.hash(password, 12);
-    const user = this.userRepo.create({ nickname, password: hashed, email });
+    const user = this.userRepo.create({ nickName, password: hashed, email });
     await this.userRepo.save(user);
 
     if (email) {
       // Placeholder: отправка (в реале — nodemailer с SMTP)
-      await this.emailService.sendWelcome(email, nickname, password); // Отправляем plain password? Нет, в реале — reset link!
+      await this.emailService.sendWelcome(email, nickName, password); // Отправляем plain password? Нет, в реале — reset link!
     }
 
-    return { message: 'User created', userId: user.id, nickName: user.nickname };
+    return { message: 'User created', userId: user.id, nickName: user.nickName };
   }
 
   async login(dto: LoginDto) {
-    const { nickname, password } = dto;
-    const user = await this.userRepo.findOne({ where: { nickname } });
+    const { nickName, password } = dto;
+    const user = await this.userRepo.findOne({ where: { nickName } });
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { sub: user.id, nickname: user.nickname };
+    const payload = { sub: user.id, nickName: user.nickName };
     return {
       access_token: this.jwtService.sign(payload),
-      user: { id: user.id, nickname: user.nickname },
+      user: { id: user.id, nickName: user.nickName },
     };
   }
 
-  async validateUser(nickname: string, pass: string): Promise<any> {
-    const user = await this.userRepo.findOne({ where: { nickname } });
+  async validateUser(nickName: string, pass: string): Promise<any> {
+    const user = await this.userRepo.findOne({ where: { nickName } });
     if (user && await bcrypt.compare(pass, user.password)) {
       const { password, ...result } = user;
       return result;
@@ -65,6 +65,7 @@ export class AuthService {
 
   async checkAuthStatus(token?: string): Promise<AuthStatusDto> {
     // Если токена нет - пользователь не регистрировался
+    console.log('сработала!!!!!!!!!!!!!!!!!!!!!!!!', token)
     if (!token) {
       return {
         status: 'not_registered',
@@ -82,7 +83,7 @@ export class AuthService {
       // Токен валидный - получаем данные пользователя
       const user = await this.userRepo.findOne({
         where: { id: payload.sub },
-        select: ['id', 'nickname', 'email'],
+        select: ['id', 'nickName', 'email'],
       });
 
       if (!user) {

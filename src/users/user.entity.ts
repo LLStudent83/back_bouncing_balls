@@ -9,7 +9,7 @@ export class User {
 
   @Column({ unique: true })
   @ApiProperty()
-  nickname: string;
+  nickName: string;
 
   @Column()
   @ApiProperty()
