@@ -37,7 +37,7 @@ export class AuthService {
       await this.emailService.sendWelcome(email, nickName, password); // Отправляем plain password? Нет, в реале — reset link!
     }
 
-    return { message: 'User created', userId: user.id, nickName: user.nickName };
+    return { message: 'User created', userId: user.id, nickName: user.nickName, email: user.email || null };
   }
 
   async login(dto: LoginDto) {
