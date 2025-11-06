@@ -65,7 +65,6 @@ export class AuthService {
 
   async checkAuthStatus(token?: string): Promise<AuthStatusDto> {
     // Если токена нет - пользователь не регистрировался
-    console.log('сработала!!!!!!!!!!!!!!!!!!!!!!!!', token)
     if (!token) {
       return {
         status: 'not_registered',
