@@ -18,6 +18,17 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
+getAuthResponse(user: User) {
+    const payload = { sub: user.id, nickName: user.nickName };
+
+    const token = this.jwtService.sign(payload);
+
+    return {
+      access_token: token,
+      user: { id: user.id, nickName: user.nickName, email: user.email || null },
+    };
+}
+
   async register(dto: RegisterDto) {
     const { nickName, password, email } = dto;
     const existing = await this.userRepo.findOne({ where: { nickName } });
@@ -37,12 +48,8 @@ export class AuthService {
       await this.emailService.sendWelcome(email, nickName, password);
     }
 
-    const payload = { sub: user.id, nickName: user.nickName };
-
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: { id: user.id, nickName: user.nickName, email: user.email || null },
-    };
+    const response = this.getAuthResponse(user);
+    return response
   }
 
   async login(dto: LoginDto) {
@@ -52,11 +59,8 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { sub: user.id, nickName: user.nickName };
-    return {
-      access_token: this.jwtService.sign(payload),
-      user: { id: user.id, nickName: user.nickName, email: user.email || null },
-    };
+    const response = this.getAuthResponse(user);
+    return response
   }
 
   async validateUser(nickName: string, pass: string): Promise<any> {
