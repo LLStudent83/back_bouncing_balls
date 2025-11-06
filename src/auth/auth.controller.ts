@@ -13,8 +13,18 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: 'Register user' })
   @ApiResponse({ status: 201, description: 'User created' })
-  async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
+
+const result = await this.authService.register(dto);
+
+ res.cookie('access_token', result.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 * 7,  // неделя
+    });
+
+    return {...result.user};
   }
 
   @UseGuards(LocalAuthGuard)
@@ -32,7 +42,7 @@ export class AuthController {
       maxAge: 24 * 60 * 60 * 1000 * 7,  // неделя
     });
 
-    return { user: result.user };
+    return {...result.user };
   }
 
   @Get('check-status')

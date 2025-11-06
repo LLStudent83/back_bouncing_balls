@@ -33,11 +33,16 @@ export class AuthService {
     await this.userRepo.save(user);
 
     if (email) {
-      // Placeholder: отправка (в реале — nodemailer с SMTP)
-      await this.emailService.sendWelcome(email, nickName, password); // Отправляем plain password? Нет, в реале — reset link!
+      // если почта есть то отправим письмо с приветствием и nickName
+      await this.emailService.sendWelcome(email, nickName, password);
     }
 
-    return { message: 'User created', userId: user.id, nickName: user.nickName, email: user.email || null };
+    const payload = { sub: user.id, nickName: user.nickName };
+
+    return {
+      access_token: this.jwtService.sign(payload),
+      user: { id: user.id, nickName: user.nickName, email: user.email || null },
+    };
   }
 
   async login(dto: LoginDto) {
