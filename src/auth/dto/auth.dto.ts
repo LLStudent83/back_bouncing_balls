@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, Matches, IsOptional } from 'class-validator';  // Изменение: добавил IsOptional
+import { IsEmail, IsNotEmpty, IsString, MinLength, Matches, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
@@ -33,17 +33,3 @@ export class LoginDto {
   password: string;
 }
 
-export class AuthStatusDto {
-  @ApiProperty()
-  status: 'authenticated' | 'token_expired' | 'not_registered';
-
-  @ApiProperty()
-  message: string;
-
-  @ApiProperty({ required: false })
-  user?: {
-    id: number;
-    nickName: string;
-    email?: string;
-  };
-}
