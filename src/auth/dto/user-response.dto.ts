@@ -19,9 +19,5 @@ export class AuthStatusDto {
   message: string;
 
   @ApiProperty({ required: false })
-  user?: {
-    id: number;
-    nickName: string;
-    email?: string;
-  };
+  user?: UserResponseDto;
 }
