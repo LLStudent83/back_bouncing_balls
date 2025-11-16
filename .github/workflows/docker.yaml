@@ -31,3 +31,22 @@ jobs:
           push: true
           tags: |
             ghcr.io/llstudent83/back_bouncing_balls:latest
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-push
+    steps:
+      - uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_SSH_HOST }}
+          username: ${{ secrets.VPS_SSH_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: 22
+          script: |
+            cd ~/projects/balls_deploy/backend
+            curl -o docker-compose.yaml https://raw.githubusercontent.com/llstudent83/back_bouncing_balls/master/docker-compose.yaml
+            echo "${{ secrets.GHRC_TOKEN }}" | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+            docker compose down--profile prod --profile prod || true
+            docker compose pull--profile prod
+            docker compose up -d--profile prod
+            docker compose logs --tail=10--profile prod
+            docker compose ps --profile prod

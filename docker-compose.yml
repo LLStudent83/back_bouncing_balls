@@ -1,20 +1,19 @@
-version: '3.8'
 services:
   db:
     image: postgres:16
     container_name: bouncing_balls-db
     restart: always
+    profiles: ["dev", "prod"]
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASS:-secret}
       POSTGRES_DB: ${DB_NAME:-bouncing_balls}
-    ports:
-      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:  # Изменение: только default (локально и на VPS для простоты)
+      - default
 
-  app:
-    build: .
+  app-dev:  # Для локальной разработки (без внешней сети)
     container_name: bouncing_balls-backend
     restart: always
     depends_on:
@@ -25,13 +24,41 @@ services:
       DB_USER: ${DB_USER:-postgres}
       DB_PASS: ${DB_PASS:-secret}
       DB_NAME: ${DB_NAME:-bouncing_balls}
-      JWT_SECRET: ${JWT_SECRET:-supersecret} # Добавьте в .env
+      JWT_SECRET: ${JWT_SECRET:-supersecret}
+    profiles: ["dev"]
+    build: .
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_PORT:-3000}:3000"  # Изменение: экспозит на localhost:3000
     volumes:
-      - .:/usr/src/app # Для hot reload
-      - /usr/src/app/node_modules # Исключить node_modules
-    command: npm run start:dev # Nodemon для reload
+      - .:/usr/src/app  # Hot reload
+      - /usr/src/app/node_modules
+    command: npm run start:dev
+    networks:
+      - default  # Локальная сеть, без priguli-apps
+
+  app-prod:  # Для VPS (с внешней сетью)
+    container_name: bouncing_balls-backend
+    restart: always
+    depends_on:
+      - db
+    environment:
+      DB_HOST: db
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASS: ${DB_PASS:-secret}
+      DB_NAME: ${DB_NAME:-bouncing_balls}
+      JWT_SECRET: ${JWT_SECRET:-supersecret}
+    profiles: ["prod"]
+    image: ghcr.io/llstudent83/back_bouncing_balls:latest
+    command: npm run start:prod
+    # Нет ports — internal в сети
+    networks:
+      - priguli-apps  # Изменение: только для prod на VPS
 
 volumes:
   postgres_data:
+
+networks:
+  priguli-apps:  # External для prod (на VPS)
+    external: true
+    name: priguli-apps
