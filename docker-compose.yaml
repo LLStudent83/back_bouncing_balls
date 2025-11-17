@@ -13,7 +13,12 @@ services:
     networks:  # Изменение: только default (локально и на VPS для простоты)
       - default
       - priguli-apps
-
+    healthcheck:  # Изменение: добавлено для ожидания готовности БД
+        test: ["CMD-SHELL", "pg_isready -U postgres -d bouncing_balls"]
+        interval: 10s
+        timeout: 5s
+        retries: 5
+        start_period: 30s  # Изменение: даёт 30 сек на инициализацию
   app-dev:  # Для локальной разработки (без внешней сети)
     container_name: bouncing_balls-backend
     restart: always
@@ -42,7 +47,8 @@ services:
     container_name: bouncing_balls-backend
     restart: always
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DB_HOST: db
       DB_PORT: ${DB_PORT:-5432}
