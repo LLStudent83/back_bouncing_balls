@@ -12,6 +12,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:  # Изменение: только default (локально и на VPS для простоты)
       - default
+      - priguli-apps
 
   app-dev:  # Для локальной разработки (без внешней сети)
     container_name: bouncing_balls-backend
