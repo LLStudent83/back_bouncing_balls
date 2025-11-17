@@ -15,7 +15,7 @@ import { EmailModule } from './email/email.module';
       password: process.env.DB_PASS || 'secret',
       database: process.env.DB_NAME || 'bouncing_balls',
       autoLoadEntities: true,
-      synchronize: true, // Только для dev! В prod — миграции
+      synchronize: process.env.NODE_ENV === 'development',
     }),
     AuthModule,
     EmailModule,

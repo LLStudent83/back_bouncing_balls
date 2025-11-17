@@ -25,6 +25,7 @@ services:
       DB_PASS: ${DB_PASS:-secret}
       DB_NAME: ${DB_NAME:-bouncing_balls}
       JWT_SECRET: ${JWT_SECRET:-supersecret}
+      NODE_ENV: development
     profiles: ["dev"]
     build: .
     ports:
@@ -48,6 +49,7 @@ services:
       DB_PASS: ${DB_PASS:-secret}
       DB_NAME: ${DB_NAME:-bouncing_balls}
       JWT_SECRET: ${JWT_SECRET:-supersecret}
+      NODE_ENV: production
     profiles: ["prod"]
     image: ghcr.io/llstudent83/back_bouncing_balls:latest
     command: npm run start:prod
